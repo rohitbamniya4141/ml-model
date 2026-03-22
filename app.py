@@ -9,10 +9,10 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Allow requests from ANY website
-CORS(app, resources={r"/*": {"origins": "*"}})
+# Allow all origins (for frontend)
+CORS(app)
 
-PORT = os.getenv("PORT", 5001)
+PORT = int(os.getenv("PORT", 5001))
 
 # Load model
 model = joblib.load("student_model.pkl")
@@ -20,31 +20,30 @@ model = joblib.load("student_model.pkl")
 
 @app.route("/")
 def home():
-    return "ML Prediction API Running"
+    return "ML Prediction API Running 🚀"
 
 
-@app.route("/predict", methods=["POST", "OPTIONS"])
+@app.route("/predict", methods=["POST"])
 def predict():
+    try:
+        data = request.get_json()
 
-    # Handle CORS preflight request
-    if request.method == "OPTIONS":
-        return jsonify({"message": "OK"}), 200
+        hours = float(data["hours_studied"])
+        attendance = float(data["attendance"])
 
-    data = request.get_json()
+        features = np.array([[hours, attendance]])
 
-    hours = float(data["hours_studied"])
-    attendance = float(data["attendance"])
+        prediction = model.predict(features)[0]
+        probability = model.predict_proba(features)[0][1]
 
-    features = np.array([[hours, attendance]])
+        return jsonify({
+            "prediction": int(prediction),
+            "probability": float(probability)
+        })
 
-    prediction = model.predict(features)[0]
-    probability = model.predict_proba(features)[0][1]
-
-    return jsonify({
-        "prediction": int(prediction),
-        "probability": float(probability)
-    })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(PORT))
+    app.run(host="0.0.0.0", port=PORT)
