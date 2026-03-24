@@ -34,7 +34,7 @@
             const hours = document.getElementById("hours").value;
             const attendance = document.getElementById("attendance").value;
 
-            const res = await fetch("https://rohit-model-azfadmazh6f3a9dd.eastasia-01.azurewebsites.net", {
+            const res = await fetch("https://rohit-model-azfadmazh6f3a9dd.eastasia-01.azurewebsites.net/predict", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
